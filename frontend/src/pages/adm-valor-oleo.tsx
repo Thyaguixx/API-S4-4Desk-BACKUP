@@ -11,10 +11,9 @@ import {
 import ValorOleoTitulo from "../components/adm-valor-oleo/ValorOleoTitulo";
 import ValorOleoBotao from "../components/adm-valor-oleo/ValorOleoBotao";
 import AdmLeftMenu from "../components/reusable/adm-left-menu";
-import ValorOleoTransferirO from "../components/adm-valor-oleo/ValorOleoTransferirO";
 import ValorOleoHistorico from "../components/adm-valor-oleo/ValorOleoHistorico";
 import ValorOleoQuantidade from "../components/adm-valor-oleo/ValorOleoQuantidade";
-import ValorOleoTransferir from "../components/adm-valor-oleo/ValorOleoTransferirO";
+import ValorOleoCadastro from "../components/adm-valor-oleo/ValorOleoCadastro";
 
 
 
@@ -67,7 +66,7 @@ function AdmValorOleo() {
 
             <Grid item lg={12} md={12} sm={12} xs={12}>
               {selectedButton === "Definir valor do óleo" ? (
-                <ValorOleoTransferir />
+                <ValorOleoCadastro />
               ) : (
                 <ValorOleoHistorico />
               ) }

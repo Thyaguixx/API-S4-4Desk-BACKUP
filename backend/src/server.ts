@@ -47,6 +47,9 @@ import { GETEstabelecimentosSistema } from "../Procedures/GETs/GETEstabeleciment
 import { GETTopParceiro } from "../Procedures/GETs/GETTopParceiros";
 import { GETParceiroPorEstado } from "../Procedures/GETs/GETParceiroPorEstado";
 import { GETEstabelecimentoPorEstado } from "../Procedures/GETs/GETEstabelecimentoPorEstado";
+import { POSTParametro } from "../Procedures/POSTs/POSTParametro";
+import { GETParametroPorNome } from "../Procedures/GETs/GETParametroPorNome";
+import { GETHistoricoParametro } from "../Procedures/GETs/GETHistoricoParametro";
 
 dotenv.config()
 
@@ -54,7 +57,7 @@ const client = new Pool({
     user: "postgres",
     host: "localhost",
     database: "API - 4Desk",    //trocar para o nome do seu banco local
-    password: "123",      //trocar para a senha do seu banco local
+    password: "thygas020",      //trocar para a senha do seu banco local
     port: 5432
 })
 
@@ -700,6 +703,42 @@ app.get("/GETEstabelecimentoPorEstado", async (req, res) => {
             res.send({ msg: 'GET com sucesso', estabelecimentos: JSON.stringify(estabelecimentos) })
         })
         .catch(error => console.error('Erro ao obter o extrato do parc empresa:', error));
+})
+
+app.post("/POSTParametro", async (req, res) => {
+    const { parametro } = req.body
+    const { data } = req.body
+
+    const resultado = await POSTParametro(client, parametro, data)
+
+    if (resultado?.isSucesso) {
+        res.send({msg: "Valor do óleo cadastrado com sucesso.", Sucesso: resultado.isSucesso})
+    } else {
+        res.send({msg: "Erro ao cadastrar valor do óleo.", Sucesso: false})
+    }
+})
+
+app.get("/GETParametroPorNome/:parametroNome", async (req, res) => {
+    const { parametroNome } = req.params
+
+    const retorno = await GETParametroPorNome(client, parametroNome)
+
+    if (retorno !== undefined) {
+        res.send({msg: "GET com sucesso", Sucesso: true, Parametro: retorno.retornoParametro})
+    } else {
+        res.send({msg: "Falha no GET", Sucesso: false })
+    }
+})
+
+app.get("/GETHistoricoParametro", async (req, res) => {
+
+    const retorno = await GETHistoricoParametro(client)
+
+    if (retorno !== undefined) {
+        res.send({msg: "GET com sucesso.", Sucesso: true, HistoricoParametroObj: retorno.retornoHistoricoParametro})
+    } else {
+        res.send({msg: "Falha no GET", Sucesso: false })
+    }
 })
 
 app.listen(3001, () => {

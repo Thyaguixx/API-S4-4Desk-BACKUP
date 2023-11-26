@@ -29,15 +29,8 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-interface Parceiro {
-  parceiroNomefantasia: string;
-}
-
-export default function AdmTransfOleoTransferir() {
-  // const [estabelecimentos, setEstabelecimentos] = useState([]);
+export default function ValorOleoCadastro() {
   const [selectedButton, setSelectedButton] = React.useState("Transação");
-
-  const [quantidadeEstoque, setQuantidadeEstoque] = React.useState(0);
   const [selectedGroup1, setSelectedGroup1] = React.useState("");
 
   const handleGroup1ButtonClick = (
@@ -64,162 +57,66 @@ export default function AdmTransfOleoTransferir() {
   const handleButtonClick = (buttonName: React.SetStateAction<string>) => {
     setSelectedButton(buttonName);
   };
-  const [parceiros, setParceiros] = React.useState<Parceiro[]>([]);
-  const [selectedParceiro, setSelectedParceiro] = React.useState<Parceiro | null>(null);
-
-  const handleParceiroChange = (
-    event: React.ChangeEvent<{}>,
-    newValue: Parceiro | null
-  ) => {
-    setSelectedParceiro(newValue);
-  };
-
-  const listaParceiros = async () => {
-    const response = await Axios.get(`${process.env.REACT_APP_BaseURL}/GETListaParceiroNomes`);
-
-    if (response.data.ParceiroNomes) {
-      const parceiroNomes = JSON.parse(response.data.ParceiroNomes);
-      setParceiros(parceiroNomes);
-
-      console.log(parceiroNomes);
-
-    }
-  };
-
-  React.useEffect(() => {
-    listaParceiros();
-  }, []);
-
-  const recuperaParceiroEstoque = async () => {
-    const tipoOleo = sessionStorage.getItem("tipoOleo");
-    // const ParceiroID = sessionStorage.getItem("EstabelecimentoID");
-
-    // if (estabelecimentoID) {
-    const result = await Axios.get(
-      `${process.env.REACT_APP_BaseURL}/GETParceiroEstoquePorTipo/${selectedParceiro?.parceiroNomefantasia}/${tipoOleo}`
-    );
-
-    if (result.data.ParceiroEstoque) {
-      const parcEstoque = result.data.ParceiroEstoque;
-      sessionStorage.setItem("parcEstoque", JSON.stringify(parcEstoque));
-      setQuantidadeEstoque(
-        parcEstoque.ParceiroEstoqueProdutoQuantidade
-      );
-    }
-  };
-
 
   const ValidaCampos = () => {
-    if (selectedParceiro === null) {
+    const tipoOleo = sessionStorage.getItem("tipoOleo")
+
+    if (!tipoOleo) {
       return {
         IsSucesso: false,
-        msg: "É necessário selecionar um parceiro e um tipo de óleo.",
+        msg: "É necessário selecionar um tipo de óleo.",
       };
     }
 
-    if (count1 === 0) {
-      return { IsSucesso: false, msg: "Quantidade não pode ser zero." };
-    }
-    if ((count1 * count2) > quantidadeEstoque) {
-      return {
-        IsSucesso: false,
-        msg: "Quantidade insuficiente no estoque do Parceiro.",
-      };
-    }
-
-    return { IsSucesso: true, msg: "Correto" };
+    return { IsSucesso: true, msg: "Correto"};
   };
 
   const limparSessao = () => {
-    // sessionStorage.removeItem("EstabelecimentoID");
     sessionStorage.removeItem("tipoOleo");
-    sessionStorage.removeItem("estabEstoque");
   };
 
-  const recuperarParametro = async () => {
-    const tipoOleo = sessionStorage.getItem("tipoOleo");
-
-    if (tipoOleo === "limpo") {
-      const parametroNome = "Óleo limpo"
-
-      const result = await Axios.get(`${process.env.REACT_APP_BaseURL}/GETParametroPorNome/${parametroNome}`)
-
-      if (result.data.Sucesso) {
-        const parametroObj = result.data.Parametro
-        setCount2(parametroObj.ParametroValorNumerico)
-      }
-    } else if (tipoOleo === "usado") {
-      const parametroNome = "Óleo usado"
-
-      const result = await Axios.get(`${process.env.REACT_APP_BaseURL}/GETParametroPorNome/${parametroNome}`)
-
-      if (result.data.Sucesso) {
-        const parametroObj = result.data.Parametro
-        setCount2(parametroObj.ParametroValorNumerico)
-      }
-    }
-  }
-
-  const tranferirOleo = async () => {
+  const cadastrarValor = async () => {
     const retornoValidaCampos = await ValidaCampos();
 
     if (retornoValidaCampos.IsSucesso) {
-      const usuarioJson = sessionStorage.getItem("UsuarioLogado");
-      const parcEstoqueJSON = sessionStorage.getItem("parcEstoque");
-      const dataAtual = new Date().toLocaleString();
+      const data = new Date().toLocaleString();
+      const tipoOleoSessao = sessionStorage.getItem("tipoOleo")
+      
+      if (tipoOleoSessao) {
+        const parametroObj = {
+          ParametroIdentificador: "ValorOleo",
+          ParametroNome: tipoOleoSessao,
+          ParametroValor: String(count1),
+          ParametroValorNumerico: count1
+        }
 
-      if (usuarioJson && parcEstoqueJSON && selectedParceiro) {
-        const usuarioObj = JSON.parse(usuarioJson);
-        const parcEstoqueObj = JSON.parse(parcEstoqueJSON);
+        const result = await Axios.post(`${process.env.REACT_APP_BaseURL}/POSTParametro`, {
+          parametro: parametroObj,
+          data: data
+        })
 
-        const transacaoEmpresaParceiro = {
-          TransacaoEmpresaParceiroData: dataAtual,
-          ParceiroEstoqueProdutoDescricao:
-            parcEstoqueObj.ParceiroEstoqueProdutoDescricao,
-          ParceiroEstoqueTipo:
-            parcEstoqueObj.ParceiroEstoqueTipo,
-          ParceiroEstoqueProdutoQuantidade: count1 * count2,
-          ParceiroCreditoQuantidade: count1,
-          EstoqueTipo: parcEstoqueObj.ParceiroEstoqueTipo
-        };//
-
-        const resultado = await Axios.post(
-          `${process.env.REACT_APP_BaseURL}/POSTEmpresaCompraOleoParceiro`,
-          {
-            ParceiroID: parcEstoqueObj.ParceiroID,
-            ParceiroEstoqueID: parcEstoqueObj.ParceiroEstoqueID,
-            UsuarioID: usuarioObj.UsuarioID,
-            transacaoEmpresaParceiro: transacaoEmpresaParceiro,
-          }
-        );
-
-        if (resultado.data.Sucesso) {
-          setIsPossible(true);
+        if (result.data.Sucesso) {
+          setIsPossible(true)
           MyToast.fire({
             icon: "success",
-            title: resultado.data.msg,
-            // background: "#90ee90"
+            text: result.data.msg
           }).then(() => {
-            window.location.reload();
-            limparSessao();
-          });
-        }
-
-        if (!resultado.data.Sucesso) {
+            window.location.reload()
+            limparSessao()
+          })
+        } else {
+          setIsPossible(true)
           MyToast.fire({
             icon: "error",
-            title: resultado.data.msg,
-            // background: "#90ee90"
-          });
+            text: result.data.msg
+          }).then(() => setIsPossible(false))
         }
       }
-    } else {
-      setIsPossible(true);
+    } else if (!retornoValidaCampos.IsSucesso && retornoValidaCampos.msg === "É necessário selecionar um tipo de óleo.") {
       MyToast.fire({
         icon: "warning",
-        title: retornoValidaCampos.msg,
-        // background: "#90ee90"
-      }).then(() => setIsPossible(false));
+        text: retornoValidaCampos.msg
+      })
     }
   };
 
@@ -261,37 +158,12 @@ export default function AdmTransfOleoTransferir() {
                       }}
                     />
                   </ListItemIcon>
-                  <Typography variant="h5">Transferir Greenneats</Typography>
+                  <Typography variant="h5">Definir valor do óleo</Typography>
                 </ListItem>
               </List>
 
-              {/* SELECIONAR O Parceiro JÁ EXISTENTE*/}
-              {/* <Autocomplete
-                disablePortal
-                id="combo-box-demo"
-                options={Parceiros.map(
-                  (Parceiro) =>
-                    Parceiro.ParceiroNomeFantasia
-                )}
-                value={selectedParceiro}
-                onChange={handleParceiroChange}
-                sx={{ width: 800 }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Parceiro que deseja transferir"
-                  />
-                )}
-              /> */}
-              <Autocomplete
-                id="combo-box-demo"
-                options={parceiros} // Certifique-se de que as opções estão corretas
-                getOptionLabel={(option) => option.parceiroNomefantasia} // Use a propriedade correta
-                value={selectedParceiro}
-                onChange={handleParceiroChange}
-                sx={{ width: '100%' }}
-                renderInput={(params) => <TextField {...params} label="Parceiro que deseja transferir" />}
-              />
+
+
 
             </Grid>
 
@@ -300,7 +172,7 @@ export default function AdmTransfOleoTransferir() {
               <List
                 sx={{
                   marginLeft: "-12%",
-                  mt: "-2%",
+                  mt: "-7%",
                 }}
               >
                 <ListItem disablePadding>
@@ -380,7 +252,7 @@ export default function AdmTransfOleoTransferir() {
               {/* TEXTO */}
               <List
                 sx={{
-                  marginLeft: "-40%",
+                  marginLeft: "-30%",
                   mt: "-8%",
                   width: "200%"
                 }}
@@ -388,34 +260,14 @@ export default function AdmTransfOleoTransferir() {
                 <ListItem disablePadding>
                   <ListItemText
                     inset
-                    primary="Selecione o tipo de óleo e quantidade:"
-                    sx={{ mt: "-3%" }}
+                    primary="Defina o tipo de óleo:"
+                    sx={{ mt: "1%" }}
                   />
-                  <div style={{ width: "400px", marginLeft: "-15%", marginTop: "3%" }}>
-                    <ListItemText
-                      inset
-                      primary="Quantidade em estoque:"
-                      sx={{ ml: "-15%", mt: "1%" }}
-                    />
-                    <div
-                      style={{
-                        border: "1px solid #000",
-                        borderColor: "grey",
-                        padding: "1px",
-                        borderRadius: "10px",
-                        width: "30%",
-                        height: "40px",
-                        marginLeft: "0%",
-                        marginTop: "3%",
-                      }}
-                    >
-                      <Box sx={{ ml: "27%", mt: "9%" }}>{quantidadeEstoque} Litros</Box>
-                    </div>
-                  </div>
+
                 </ListItem>
               </List>
 
-              <div style={{ display: "flex", alignItems: "center", marginLeft: "-40%", marginTop: "-10%" }}>
+              <div style={{ display: "flex", alignItems: "center", marginLeft: "-10%", marginTop: "2%" }}>
                 {/* Contêiner para os botões 'usado' e 'limpo' */}
                 <div
                   id="containerBotoes"
@@ -429,7 +281,7 @@ export default function AdmTransfOleoTransferir() {
                   {/* BOTÃO ÓLEO LIMPO */}
                   <div
                     style={{
-                      marginLeft: "10%",
+                      marginLeft: "5%",
                       width: "30%",
                     }}
                   >
@@ -445,9 +297,7 @@ export default function AdmTransfOleoTransferir() {
                       variant="contained"
                       onClick={() => {
                         handleGroup1ButtonClick("limpo");
-                        sessionStorage.setItem("tipoOleo", "limpo");
-                        recuperaParceiroEstoque();
-                        recuperarParametro();
+                        sessionStorage.setItem("tipoOleo", "Óleo limpo");
                       }}
                     >
                       <img
@@ -472,7 +322,7 @@ export default function AdmTransfOleoTransferir() {
                       <div
                         style={{
                           fontSize: "70%",
-                          marginLeft: "2%",
+                          marginLeft: "20%",
                           marginTop: "5%",
                         }}
                       >
@@ -500,9 +350,7 @@ export default function AdmTransfOleoTransferir() {
                       variant="contained"
                       onClick={() => {
                         handleGroup1ButtonClick("usado");
-                        sessionStorage.setItem("tipoOleo", "usado");
-                        recuperaParceiroEstoque();
-                        recuperarParametro();
+                        sessionStorage.setItem("tipoOleo", "Óleo usado");
                       }}
                     >
                       <img
@@ -527,8 +375,8 @@ export default function AdmTransfOleoTransferir() {
                       <div
                         style={{
                           fontSize: "70%",
-                          marginLeft: "2%",
-                          marginTop: "5%",
+                          marginLeft: "10%",
+                          marginTop: "10%",
                         }}
                       >
                         usado
@@ -560,31 +408,31 @@ export default function AdmTransfOleoTransferir() {
                     }}
                   >
                     {/* BOTÃO - */}
-                    {/* <Button
+                    <Button
                       id="button3"
                       aria-label="reduce"
                       onClick={() => {
-                        setCount2(Math.max(count2 - 1, 0));
+                        // setCount2(Math.max(count2 - 1, 0));
                       }}
                     >
-                      <RemoveIcon fontSize="small" />
-                    </Button> */}
+                      {/* <RemoveIcon fontSize="small" /> */}
+                    </Button>
 
                     {/* NÚMERO CONTAGEM */}
                     <Badge color="secondary">
-                      <span style={{ fontSize: "24px" }}>{count1 * count2}</span>
+                      <span style={{ fontSize: "24px" }}>{count2}</span>
                     </Badge>
 
                     {/* BOTÃO + */}
-                    {/* <Button
+                    <Button
                       id="button4"
                       aria-label="increase"
                       onClick={() => {
-                        setCount2(count1 + 1);
+                        // setCount2(count1 + 1);
                       }}
                     >
-                      <AddIcon fontSize="small" />
-                    </Button> */}
+                      {/* <AddIcon fontSize="small" /> */}
+                    </Button>
                   </div>
 
                   {/* TEXTO */}
@@ -613,7 +461,7 @@ export default function AdmTransfOleoTransferir() {
             {/* BOTÕES DE BAIXO */}
             <Grid item xs={6} md={10}>
               <ThemeProvider theme={theme}>
-                <Box sx={{ width: "auto", marginTop: "0%" }}>
+                <Box sx={{ width: "auto", marginTop: "4%" }}>
                   <Stack spacing={3} direction="row">
                     {/*BOTÃO CANCELAR*/}
                     <div
@@ -623,7 +471,7 @@ export default function AdmTransfOleoTransferir() {
                         marginLeft: "35%",
                       }}
                     >
-                      <Button
+                      {/* <Button
                         variant={
                           selectedButton === "cancelar"
                             ? "contained"
@@ -631,7 +479,7 @@ export default function AdmTransfOleoTransferir() {
                         }
                       >
                         cancelar
-                      </Button>
+                      </Button> */}
 
                       <Box sx={{ width: "15%" }} />
 
@@ -643,9 +491,9 @@ export default function AdmTransfOleoTransferir() {
                             : "outlined"
                         }
                         disabled={IsPossible}
-                        onClick={tranferirOleo}
+                        onClick={cadastrarValor}
                       >
-                        transferir
+                        cadastrar
                       </Button>
                     </div>
                   </Stack>

@@ -26,33 +26,33 @@ const CustomZero = styled('span')({
   color: '#136935'
 });
 
-  export default function ValorComponent() {
+export default function ValorComponent() {
   return (
     <div
-    style={{
-      position: 'fixed',
-      top: '30%',
-      width: '100%',
-      zIndex: '-20%'
-    }}
-  >
-  <ValorOleoQuantidade/>
+      style={{
+        position: 'fixed',
+        top: '30%',
+        width: '100%',
+        zIndex: '-20%'
+      }}
+    >
+      {/* <ValorOleoQuantidade /> */}
 
-    <Box sx={{ flexGrow: 1}}>
-      <Grid container spacing={2} justifyContent="right" style={{ marginTop: '-10%', marginLeft:"-23%"  }}>
+      <Box sx={{ flexGrow: 1 }}>
+        <Grid container spacing={2} justifyContent="right" style={{ marginTop: '-10%', marginLeft: "-23%" }}>
 
-        <Grid item xs={4}>
-          <Item>
-            <ListItem
-              sx={{ height: '2%' }}>Total:
-            </ListItem>
-            <CustomZero>{}</CustomZero>
-            <img src={moeda} alt="png" width="40px" style={{ marginRight: '20%' }} />
-          </Item>
+          <Grid item xs={4}>
+            <Item>
+              <ListItem
+                sx={{ height: '2%' }}>Total:
+              </ListItem>
+              <CustomZero>{2}</CustomZero>
+              <img src={moeda} alt="png" width="40px" style={{ marginRight: '20%' }} />
+            </Item>
+          </Grid>
+
         </Grid>
-
-      </Grid>
-    </Box>
-  </div>
+      </Box>
+    </div>
   );
 }

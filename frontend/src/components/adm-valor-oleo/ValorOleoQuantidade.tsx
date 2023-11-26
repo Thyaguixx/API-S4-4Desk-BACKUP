@@ -11,7 +11,6 @@ import { lightBlue } from "@mui/material/colors";
 import limpo from "../images/limpo.png";
 import usado from "../images/usado.png";
 import Axios from "axios"
-import { log } from "console";
 
 export default function ValorOleoQuantidade() {
   const theme = createTheme({
@@ -28,6 +27,31 @@ export default function ValorOleoQuantidade() {
   const isMobile = useMediaQuery("(max-width: 600px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const isDesktop = useMediaQuery("(max-width: 10025px)"); // Tela maior que 1024px é considerada como PC
+
+  const [valorOleoLimpo, setValorOleoLimpo] = React.useState(0)
+  const [valorOleoUsado, setValorOleoUsado] = React.useState(0)
+
+  const recuperaParametros = async () => {
+    const nomeParametroLimpo = "Óleo limpo"
+    const nomeParametroUsado = "Óleo usado"
+
+    const result_1 = await Axios.get(`${process.env.REACT_APP_BaseURL}/GETParametroPorNome/${nomeParametroLimpo}`)
+    const result_2 = await Axios.get(`${process.env.REACT_APP_BaseURL}/GETParametroPorNome/${nomeParametroUsado}`)
+
+    if (result_1.data.Sucesso) {
+      const parametroObj_1 = result_1.data.Parametro
+      setValorOleoLimpo(parametroObj_1.ParametroValorNumerico)
+    }
+
+    if (result_2.data.Sucesso) {
+      const parametroObj_2 = result_2.data.Parametro
+      setValorOleoUsado(parametroObj_2.ParametroValorNumerico)
+    }
+  }
+
+  React.useEffect(() => {
+    recuperaParametros()
+  }, [])
 
   return (
     <ThemeProvider theme={theme}>
@@ -89,9 +113,11 @@ export default function ValorOleoQuantidade() {
                 ml: "65%",
               }}
             >
-              (Litros)
+              (Valor)
             </Grid>
           </Grid>
+
+
           <Grid
             item
             lg={3}
@@ -107,7 +133,10 @@ export default function ValorOleoQuantidade() {
               color: "#136935",
             }}
           >
+            {valorOleoLimpo}
+            {/* 5 */}
           </Grid>
+
           <Grid
             item
             lg={2}
@@ -173,7 +202,7 @@ export default function ValorOleoQuantidade() {
                 ml: "75%",
               }}
             >
-              (Litros)
+              (Valor)
             </Grid>
           </Grid>
           <Grid
@@ -191,6 +220,8 @@ export default function ValorOleoQuantidade() {
               color: "#136935",
             }}
           >
+            {valorOleoUsado}
+            {/* 5 */}
           </Grid>
           <Grid
             item

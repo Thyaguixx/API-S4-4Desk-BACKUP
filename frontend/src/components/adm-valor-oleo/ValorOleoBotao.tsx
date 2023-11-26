@@ -61,8 +61,8 @@ export default function AdmValorOleo(props: ParCreditoBotoesProps) {
             <Button
               variant={
                 props.selectedButton === "Definir valor do óleo"
-                  ? "outlined"
-                  : "contained"
+                  ? "contained"
+                  : "outlined"
                 // "contained"
               }
               onClick={() =>
